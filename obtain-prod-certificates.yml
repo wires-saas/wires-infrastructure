@@ -1,0 +1,10 @@
+- hosts: prod, vps_scaleway, castle
+
+  vars:
+    wildcardDomain: wires.fr
+    notificationEmail: antoine.gautrain@gmail.com
+
+    renewalThreshold: 30
+
+  roles:
+    - role: certificates

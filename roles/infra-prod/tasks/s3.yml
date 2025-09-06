@@ -1,0 +1,9 @@
+- name: Create object storage directory
+  file:
+    path: ~/infra-prod/object-storage
+    state: directory
+
+- name: Create object storage data directory
+  file:
+    path: ~/infra-prod/object-storage/data
+    state: directory

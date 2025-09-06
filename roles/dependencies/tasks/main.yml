@@ -1,0 +1,11 @@
+---
+
+- name: Install packages
+  become: true
+  apt:
+    update_cache: yes
+    name:
+      - rsync # for file upload
+      - ufw # for firewall
+      - fail2ban # for firewall
+      - netcat-openbsd # for ssh proxy

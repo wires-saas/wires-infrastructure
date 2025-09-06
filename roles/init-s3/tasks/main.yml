@@ -1,0 +1,31 @@
+# Public bucket with anonymous download and a default avatar under avatars/avatar.png
+
+- name: Sending avatar.png
+  copy:
+    src: ../files/avatar.png
+    dest: "{{ path }}/object-storage/data/avatar.png"
+
+- name: Alias minio client
+  command: docker exec {{ container }} mc alias set s3 http://{{ container }}:9000 {{ minio_user }} {{ minio_password }} --no-color
+  register: minio_alias
+
+- name: Debug minio client alias
+  debug:
+    msg: "{{ minio_alias.stdout }}"
+
+- name: Force empty bucket
+  command: docker exec {{ container }} mc rm --force --recursive s3/{{ item }}
+  loop: "{{ buckets }}"
+  ignore_errors: true
+
+- name: Try create bucket
+  command: docker exec {{ container }} mc mb s3/{{ item }} --ignore-existing
+  loop: "{{ buckets }}"
+
+- name: Allow public access to bucket
+  command: docker exec {{ container }} mc anonymous set download s3/{{ item }}
+  loop: "{{ buckets }}"
+
+- name: Upload avatar.png
+  command: docker exec {{ container }} mc put /data/avatar.png s3/{{ item }}/avatars/avatar.png
+  loop: "{{ buckets }}"

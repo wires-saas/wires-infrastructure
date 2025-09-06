@@ -1,0 +1,21 @@
+- hosts: dev
+
+  vars:
+    installDependencies: false
+    createNetworks: true
+
+    renewCertificates: false
+
+    # certificate details
+    wildcardDomain: dev.wires.fr
+    notificationEmail: antoine.gautrain@gmail.com
+    renewalThreshold: 30
+
+  roles:
+    - role: dependencies
+      when: installDependencies | default(false)
+
+    - role: certificates
+      when: renewCertificates | default(false)
+
+    - role: infra-dev

@@ -1,0 +1,11 @@
+[vps_scaleway]
+status.wires.fr
+
+[dev]
+dev.wires.fr
+
+[prod]
+wires-prod-1
+
+[castle]
+wires-prod-0

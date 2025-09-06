@@ -1,0 +1,56 @@
+- name: Place bootstrap.js
+  template:
+    src: files/bootstrap.js
+    dest: "{{ path }}/bootstrap.js"
+
+- name: Place bootstrap-rbac.js
+  template:
+    src: files/bootstrap-rbac.js
+    dest: "{{ path }}/bootstrap-rbac.js"
+
+- name: Place bootstrap-plans.js
+  template:
+    src: files/bootstrap-plans.js
+    dest: "{{ path }}/bootstrap-plans.js"
+
+- name: Place bootstrap-ai.js
+  template:
+    src: files/bootstrap-ai.js
+    dest: "{{ path }}/bootstrap-ai.js"
+
+- name: Place bootstrap-contents.js
+  template:
+    src: files/bootstrap-contents.js
+    dest: "{{ path }}/bootstrap-contents.js"
+
+- name: Place bootstrap-studio.js
+  template:
+    src: files/bootstrap-studio.js
+    dest: "{{ path }}/bootstrap-studio.js"
+
+- name: Place bootstrap-providers.js
+  template:
+    src: files/bootstrap-providers.js
+    dest: "{{ path }}/bootstrap-providers.js"
+
+- name: Bootstrap overall (organizations, users, ...)
+  command: "mongosh {{ db_host }} --file {{ path }}/bootstrap.js"
+
+- name: Bootstrap RBAC (roles, permissions, user roles, ...)
+  command: "mongosh {{ db_host }} --file {{ path }}/bootstrap-rbac.js"
+
+# TODO in prod not drop all plans :)
+- name: Bootstrap plans (demo org with custom plan, other orgs with free plan)
+  command: "mongosh {{ db_host }} --file {{ path }}/bootstrap-plans.js"
+
+- name: Bootstrap AI (gpts, requests, ...)
+  command: "mongosh {{ db_host }} --file {{ path }}/bootstrap-ai.js"
+
+- name: Bootstrap contents (feeds, runs, articles, ...)
+  command: "mongosh {{ db_host }} --file {{ path }}/bootstrap-contents.js"
+
+- name: Bootstrap studio (blocks, folders, templates, ...)
+  command: "mongosh {{ db_host }} --file {{ path }}/bootstrap-studio.js"
+
+- name: Bootstrap providers (contacts, emails, ...)
+  command: "mongosh {{ db_host }} --file {{ path }}/bootstrap-providers.js"

@@ -1,0 +1,41 @@
+---
+- name: Create database directory
+  file:
+    path: "{{ basePath }}/database"
+    state: directory
+
+- name: Create database secrets directory
+  file:
+    path: "{{ basePath }}/database/secrets"
+    state: directory
+
+- name: Create config directories
+  file:
+    path: "{{ basePath }}/database/{{ item }}_config"
+    state: directory
+  loop:
+    - mgo01
+    - mgo02
+    - mgo03
+
+- name: Create data directories
+  file:
+    path: "{{ basePath }}/database/{{ item }}_data"
+    state: directory
+  loop:
+    - mgo01
+    - mgo02
+    - mgo03
+
+- name: Place keyfile secret
+  copy: src=files/database/secrets/keyfile dest={{ basePath }}/database/secrets/keyfile mode=0600
+
+# Hack to ensure keyfile has mongodb:mongodb permissions
+- name: Changing keyfile owner
+  become: true
+  shell: chown 999:999 {{ basePath }}/database/secrets/keyfile
+
+- name: Ensure bridge network is available for MongoDB
+  command: docker network create mongo-network
+  ignore_errors: yes
+  when: createNetworks | default(false)

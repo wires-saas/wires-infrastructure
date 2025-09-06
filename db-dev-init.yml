@@ -1,0 +1,8 @@
+- hosts: dev
+
+  vars:
+    path: ~/infra-dev
+    db_host: mongodb://{{ dev_mongo_admin_user }}:{{ dev_mongo_admin_password }}@mgo01.dev.wires.fr:27017,mgo02.dev.wires.fr:27018,mgo03.dev.wires.fr:27019/?replicaSet=rs0
+
+  roles:
+    - role: init-db

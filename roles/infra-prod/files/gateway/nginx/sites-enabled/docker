@@ -1,0 +1,33 @@
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name docker.wires.fr;
+    server_tokens off;
+
+    location / {
+        return 301 https://$server_name$request_uri;
+    }
+
+}
+
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+
+    server_name docker.wires.fr;
+    server_tokens off;
+
+    include /etc/nginx/conf.d/ssl.inc;
+
+    location /status {
+        proxy_pass https://portainer-container;
+    }
+
+    location / {
+        include /etc/nginx/conf.d/whitelist.inc;
+        proxy_pass https://portainer-container;
+    }
+
+}

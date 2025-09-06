@@ -1,0 +1,7 @@
+Host wires-prod-0
+    HostName 91.134.45.178
+    User debian
+
+Host wires-prod-1
+    ProxyCommand ssh -q -F ./ssh_config wires-prod-0 nc 10.1.2.250 22
+    User debian

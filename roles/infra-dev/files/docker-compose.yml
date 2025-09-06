@@ -1,0 +1,255 @@
+version: "3.9"
+name: infra-dev
+
+services:
+  gateway:
+    container_name: infra-dev-gateway
+    image: nginx:latest
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - nginx-network
+    restart: always
+    volumes:
+      - ./gateway/nginx/conf.d/:/etc/nginx/conf.d/:ro
+      - ./gateway/nginx/sites-enabled/:/etc/nginx/sites-enabled/:ro
+      - ./gateway/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - /etc/letsencrypt:/etc/nginx/ssl:ro
+      - ./schemas/:/var/www/schemas/:ro
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  watchtower-frontend:
+    container_name: infra-dev-watchtower-frontend
+    image: containrrr/watchtower:latest
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.docker/config.json:/config.json # Mandatory for accessing private repositories
+    command: --http-api-update --scope frontend --cleanup --debug
+    environment:
+      - WATCHTOWER_HTTP_API_TOKEN={{ watchtower_frontend_auth_token }}
+      - WATCHTOWER_CLEANUP=true
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.scope=frontend"
+    networks:
+      - nginx-network
+    depends_on:
+      - gateway
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  frontend:
+    container_name: infra-dev-frontend
+    image: wiresantoine/wires-frontend:dev
+    restart: always
+    networks:
+      - nginx-network
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=frontend"
+    depends_on:
+      - gateway
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  watchtower-backend:
+    container_name: infra-dev-watchtower-backend
+    image: containrrr/watchtower:latest
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.docker/config.json:/config.json # Mandatory for accessing private repositories
+    command: --http-api-update --scope backend --cleanup --debug
+    environment:
+      - WATCHTOWER_HTTP_API_TOKEN={{ watchtower_backend_auth_token }}
+      - WATCHTOWER_CLEANUP=true
+    labels:
+      - "com.centurylinklabs.watchtower.enable=false"
+      - "com.centurylinklabs.watchtower.scope=backend"
+    networks:
+      - nginx-network
+    depends_on:
+      - gateway
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  backend:
+    container_name: infra-dev-backend
+    image: wiresantoine/wires-backend:dev
+    restart: always
+    networks:
+      - nginx-network
+      - mongo-network
+      - s3-network
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.scope=backend"
+    depends_on:
+      - gateway
+      - mgo01
+      - mgo02
+      - mgo03
+      - s3
+    volumes:
+      - "./secrets/.env:/home/node/app/.env:ro"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "500m"
+        max-file: "5"
+
+  mgo01:
+    container_name: infra-dev-db-mgo01
+    image: mongo:7.0
+    command: ["--keyFile", "/data/keyfile", "--replSet", "rs0", "--bind_ip_all", "--port", "27017"]
+    hostname: mgo01.dev.wires.fr
+    networks:
+      - mongo-network
+    ports:
+        - "27017:27017"
+    healthcheck:
+      test: echo "try { rs.status() } catch (err) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mgo01.dev.wires.fr:27017',priority:1},{_id:1,host:'mgo02.dev.wires.fr:27018',priority:0.5},{_id:2,host:'mgo03.dev.wires.fr:27019',priority:0.5}]}) }" | mongosh --username {{ dev_mongo_admin_user }} --password {{ dev_mongo_admin_password }} --port 27017 --quiet
+      interval: 5s
+      timeout: 30s
+      start_period: 0s
+      retries: 30
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME={{ dev_mongo_admin_user }}
+      - MONGO_INITDB_ROOT_PASSWORD={{ dev_mongo_admin_password }}
+    volumes:
+      - "./database/mgo01_data:/data/db"
+      - "./database/mgo01_config:/data/configdb"
+      - "./database/secrets/keyfile:/data/keyfile:ro"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  mgo02:
+    image: mongo:7.0
+    container_name: infra-dev-db-mgo02
+    command: ["--keyFile", "/data/keyfile", "--replSet", "rs0", "--bind_ip_all", "--port", "27018"]
+    hostname: mgo02.dev.wires.fr
+    networks:
+      - mongo-network
+    ports:
+      - "27018:27018"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME={{ dev_mongo_admin_user }}
+      - MONGO_INITDB_ROOT_PASSWORD={{ dev_mongo_admin_password }}
+    volumes:
+      - "./database/mgo02_data:/data/db"
+      - "./database/mgo02_config:/data/configdb"
+      - "./database/secrets/keyfile:/data/keyfile:ro"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  mgo03:
+    image: mongo:7.0
+    container_name: infra-dev-db-mgo03
+    command: ["--keyFile", "/data/keyfile", "--replSet", "rs0", "--bind_ip_all", "--port", "27019"]
+    hostname: mgo03.dev.wires.fr
+    networks:
+      - mongo-network
+    ports:
+      - "27019:27019"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME={{ dev_mongo_admin_user }}
+      - MONGO_INITDB_ROOT_PASSWORD={{ dev_mongo_admin_password }}
+    volumes:
+      - "./database/mgo03_data:/data/db"
+      - "./database/mgo03_config:/data/configdb"
+      - "./database/secrets/keyfile:/data/keyfile:ro"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  s3:
+    container_name: infra-dev-s3
+    image: bitnami/minio:latest
+    restart: always
+    networks:
+      - nginx-network
+      - s3-network
+    ports:
+      - "9000:9000" # For testing purposes, open port 9000
+    environment:
+      - MINIO_ROOT_USER={{ dev_minio_root_user }}
+      - MINIO_ROOT_PASSWORD={{ dev_minio_root_password }}
+    volumes:
+      - "./object-storage/data:/data"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  portainer:
+    container_name: infra-dev-docker-monitoring
+    image: portainer/portainer-ce:latest
+    command: --sslcert /certs/live/dev.wires.fr/fullchain.pem --sslkey /certs/live/dev.wires.fr/privkey.pem
+    expose:
+      - 9443
+    networks:
+      - nginx-network
+    volumes:
+      - ./portainer/data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /etc/letsencrypt/live/dev.wires.fr:/certs/live/dev.wires.fr:ro
+      - /etc/letsencrypt/archive/dev.wires.fr:/certs/archive/dev.wires.fr:ro
+    restart: always
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  mongo-monitoring:
+    container_name: infra-dev-mongo-monitoring
+    image: mongo-express:latest
+    networks:
+      - nginx-network
+      - mongo-network
+    expose:
+      - "8081:8081"
+    environment:
+      - ME_CONFIG_BASICAUTH_USERNAME={{ dev_mongo_monitoring_user }}
+      - ME_CONFIG_BASICAUTH_PASSWORD={{ dev_mongo_monitoring_password }}
+      - ME_CONFIG_MONGODB_URL={{ dev_mongo_uri }}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    depends_on:
+      - mgo01
+      - mgo02
+      - mgo03
+
+networks:
+  nginx-network:
+    external: true
+  mongo-network:
+    external: true
+  s3-network:
+    external: true

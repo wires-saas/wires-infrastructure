@@ -1,0 +1,40 @@
+---
+
+- name: Create main directory
+  file:
+    path: ~/admin-gateway
+    state: directory
+
+- name: Synchronize Nginx for gateway
+  synchronize:
+    src: files/nginx
+    dest: ~/admin-gateway
+    delete: yes
+    use_ssh_args: true
+
+- name: Ensure bridge network is available for Nginx
+  command: docker network create nginx-network
+  ignore_errors: yes
+  when: createNetworks | default(false)
+
+# Forcing clean start
+- name: Stop Docker Compose
+  command: docker compose stop
+  args:
+    chdir: ~/admin-gateway
+  ignore_errors: yes
+
+
+- name: Place docker-compose.yml
+  template:
+    src: files/docker-compose.yml
+    dest: ~/admin-gateway/docker-compose.yml
+
+- name: Login to Docker Hub
+  command: docker login -u {{ docker_user }} -p {{ docker_token }}
+
+- name: Start Docker Compose
+  command: docker compose up -d
+  args:
+    chdir: ~/admin-gateway
+  ignore_errors: yes

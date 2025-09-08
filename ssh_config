@@ -1,0 +1,10 @@
+Host wires-prod-0
+    HostName 51.159.136.188
+    User root
+    IdentityFile ~/.ssh/id_rsa
+
+Host wires-prod-1
+    HostName 172.16.12.3
+    User root
+    IdentityFile ~/.ssh/id_rsa
+    ProxyJump wires-prod-0

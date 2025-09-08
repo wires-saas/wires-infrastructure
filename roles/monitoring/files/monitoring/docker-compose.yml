@@ -1,0 +1,16 @@
+name: monitoring
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    restart: always
+    volumes:
+      - ./uptime-kuma:/app/data
+    networks:
+      - nginx-network
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+networks:
+  nginx-network:
+    external: true

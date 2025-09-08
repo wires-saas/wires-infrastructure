@@ -1,0 +1,14 @@
+- hosts: prod
+
+  vars:
+    path: ~/infra-prod
+    container: infra-prod-s3
+    minio_user: "{{ prod_minio_root_user }}"
+    minio_password: "{{ prod_minio_root_password }}"
+    buckets:
+      - public
+      - local
+
+  roles:
+
+    - role: init-s3

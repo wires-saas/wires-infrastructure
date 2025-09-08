@@ -1,0 +1,27 @@
+
+- name: Create gateway directory
+  file:
+    path: ~/gateway
+    state: directory
+
+- name: Synchronize Nginx configuration files
+  synchronize: src=files/gateway/nginx dest=~/gateway delete=yes
+
+- name: Ensure bridge network is available for Nginx
+  command: docker network create nginx-network
+  ignore_errors: yes
+
+- name: Stop Docker Compose
+  command: docker compose stop
+  args:
+    chdir: ~/gateway
+  ignore_errors: yes
+
+- name: Place docker-compose.yml
+  copy: src=files/gateway/docker-compose.yml dest=~/gateway/docker-compose.yml
+
+- name: Restart Docker Compose
+  command: docker compose restart
+  args:
+    chdir: ~/gateway
+  ignore_errors: yes

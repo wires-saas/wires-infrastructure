@@ -1,0 +1,98 @@
+---
+- name: Include encrypted vars
+  include_vars: vars/watchtower.yml
+
+- name: Create main directory
+  file:
+    path: ~/infra-dev
+    state: directory
+
+- name: Setup database directories
+  vars:
+    basePath: ~/infra-dev
+  include_tasks: database.yml
+
+- name: Create sub directory
+  file:
+    path: ~/infra-dev/gateway
+    state: directory
+
+- name: Create sub directory
+  file:
+    path: ~/infra-dev/schemas
+    state: directory
+
+- name: Copy network diagram to schemas directory
+  copy:
+    src: files/schemas/network-diagram.png
+    dest: ~/infra-dev/schemas/network-diagram.png
+
+- name: Create sub directory for secrets
+  file:
+    path: ~/infra-dev/secrets
+    state: directory
+
+- name: Place env file secret
+  template:
+    src: files/secrets/.env
+    dest: ~/infra-dev/secrets/.env
+
+- name: Include portainer.yml task
+  include_tasks: portainer.yml
+
+- name: Include s3.yml task
+  include_tasks: s3.yml
+
+- name: Synchronize Nginx for gateway
+  synchronize: src=files/gateway/nginx dest=~/infra-dev/gateway delete=yes
+
+- name: Ensure bridge network is available for Nginx
+  command: docker network create nginx-network
+  ignore_errors: yes
+  when: createNetworks | default(false)
+
+- name: Ensure bridge network is available for MongoDB
+  command: docker network create mongo-network
+  ignore_errors: yes
+  when: createNetworks | default(false)
+
+- name: Ensure bridge network is available for ObjectStorage S3
+  command: docker network create s3-network
+  ignore_errors: yes
+  when: createNetworks | default(false)
+
+# Forcing clean start
+- name: Stop Docker Compose
+  command: docker compose stop
+  args:
+    chdir: ~/infra-dev
+  ignore_errors: yes
+
+- name: Place docker-compose.yml
+  template:
+    src: files/docker-compose.yml
+    dest: ~/infra-dev/docker-compose.yml
+
+- name: Login to Docker Hub
+  command: docker login -u {{ docker_user }} -p {{ docker_token }}
+
+- name: Start Docker Compose
+  command: docker compose up -d
+  args:
+    chdir: ~/infra-dev
+  ignore_errors: yes
+
+- name: Topology (simple)
+  command: docker run --rm --name dcv -v ~/infra-dev:/input pmsipilot/docker-compose-viz render -m image --force docker-compose.yml --output-file=schemas/topology.png --no-ports --no-volumes --no-networks
+
+- name: Topology (ports)
+  command: docker run --rm --name dcv -v ~/infra-dev:/input pmsipilot/docker-compose-viz render -m image --force docker-compose.yml --output-file=schemas/topology--ports.png --no-volumes --no-networks
+
+- name: Topology (networks)
+  command: docker run --rm --name dcv -v ~/infra-dev:/input pmsipilot/docker-compose-viz render -m image --force docker-compose.yml --output-file=schemas/topology--networks.png --no-ports --no-volumes
+
+- name: Topology (volumes)
+  command: docker run --rm --name dcv -v ~/infra-dev:/input pmsipilot/docker-compose-viz render -m image --force docker-compose.yml --output-file=schemas/topology--volumes.png --no-ports --no-networks
+
+- name: Topology (full)
+  command: docker run --rm --name dcv -v ~/infra-dev:/input pmsipilot/docker-compose-viz render -m image --force docker-compose.yml --output-file=schemas/topology--full.png

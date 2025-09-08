@@ -1,0 +1,8 @@
+- hosts: prod
+
+  vars:
+    path: ~/infra-prod
+    db_host: mongodb://{{ prod_mongo_admin_user }}:{{ prod_mongo_admin_password }}@mgo01.wires.fr:27017,mgo02.wires.fr:27018,mgo03.wires.fr:27019/?replicaSet=rs0
+
+  roles:
+    - role: init-db

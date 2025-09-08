@@ -1,0 +1,13 @@
+- hosts: dev
+
+  vars:
+    path: ~/infra-dev
+    container: infra-dev-s3
+    minio_user: "{{ dev_minio_root_user }}"
+    minio_password: "{{ dev_minio_root_password }}"
+    buckets:
+      - public
+      - local
+
+  roles:
+    - role: init-s3

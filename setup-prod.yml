@@ -1,0 +1,8 @@
+- hosts: prod
+
+  roles:
+    - role: dependencies
+
+    - role: firewall
+
+    - role: docker

@@ -1,0 +1,10 @@
+.idea
+vault
+vault/password.txt
+.DS_Store
+roles/.DS_Store
+
+.terraform
+scaleway.auto.tfvars
+terraform.tfstate
+terraform.tfstate.backup

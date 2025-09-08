@@ -1,0 +1,6 @@
+- name: Get wildcard certificate
+  become: true
+  command: |
+    certbot certonly --dns-ovh --dns-ovh-credentials /etc/letsencrypt/ovh.ini --dns-ovh-propagation-seconds 10 \
+    -d "{{ wildcardDomain }}" -d "*.{{ wildcardDomain }}" --non-interactive --agree-tos \
+    --email "{{ notificationEmail }}" --server https://acme-v02.api.letsencrypt.org/directory

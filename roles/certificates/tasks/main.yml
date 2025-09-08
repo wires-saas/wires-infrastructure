@@ -1,0 +1,65 @@
+- name: Install snapd and libssl-dev
+  become: true
+  apt:
+    update_cache: yes
+    name:
+      - snapd
+      - libssl-dev
+
+- name: Install certbot with snapd
+  become: true
+  command: snap install certbot --classic
+
+- name: Create symbolic link for certbot
+  become: true
+  command: ln -s /snap/bin/certbot /usr/bin/certbot
+  ignore_errors: yes
+
+- name: Containment
+  become: true
+  command: snap set certbot trust-plugin-with-root=ok
+
+- name: Install DNS plugin for OVH
+  become: true
+  command: snap install certbot-dns-ovh
+
+- name: Create LetsEncrypt directory
+  become: true
+  file:
+    path: /etc/letsencrypt
+    state: directory
+    recurse: yes
+
+- name: Place OVH credentials
+  become: true
+  copy: src=files/ovh.secret dest=/etc/letsencrypt/ovh.ini mode=0600
+
+- name: Ensure OVH credentials are secure
+  become: true
+  command: chown root:root /etc/letsencrypt/ovh.ini
+
+- name: Check if the file exists
+  become: true
+  stat:
+    path: /etc/letsencrypt/live/{{ wildcardDomain }}/cert.pem
+  register: certificate_stat
+
+- name: Set a boolean variable based on file existence
+  set_fact:
+    certificate_exists: "{{ certificate_stat.stat.exists }}"
+
+- name: Debug the file existence variable
+  debug:
+    msg: "Certificate exists: {{ certificate_exists }}"
+
+# If the certificate does not exist, we need to get it
+# Including get-certificate.yml task
+- name: Get certificate if it does not exist
+  include_tasks: get-certificate.yml
+  when: not certificate_exists
+
+# If the certificate exists, we need to check if it needs to be renewed
+# Including renew-certificate.yml task
+- name: Renew certificate if it needs to be
+  include_tasks: renew-certificate.yml
+  when: certificate_exists

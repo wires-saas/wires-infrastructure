@@ -1,0 +1,9 @@
+- name: Create Portainer directory
+  file:
+    path: ~/infra-prod/portainer
+    state: directory
+
+- name: Create Portainer data directory
+  file:
+    path: ~/infra-prod/portainer/data
+    state: directory

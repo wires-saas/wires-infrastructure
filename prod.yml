@@ -1,0 +1,29 @@
+# Pre-requisite: playbook setup-prod.yml
+
+- hosts: prod
+
+  vars:
+    installDependencies: false
+    createNetworks: true
+
+    renewCertificates: false
+
+    # # certificate details
+    wildcardDomain: wires.fr
+    notificationEmail: antoine.gautrain@gmail.com
+    renewalThreshold: 30
+
+  roles:
+    - role: dependencies
+      when: installDependencies | default(false)
+
+    - role: firewall
+      when: installDependencies | default(false)
+
+    - role: docker
+      when: installDependencies | default(false)
+
+    - role: certificates
+      when: renewCertificates | default(false)
+
+    - role: infra-prod

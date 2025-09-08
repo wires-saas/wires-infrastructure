@@ -1,0 +1,8 @@
+---
+
+- name: Setup UptimeKuma
+  include_tasks: status.yml
+
+
+- name: Setup Nginx gateway
+  include_tasks: nginx.yml

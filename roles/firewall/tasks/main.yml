@@ -1,0 +1,61 @@
+---
+- name: Ensure SSH directory is present
+  file: path=~/.ssh state=directory
+
+- name: Synchronize authorized keys for SSH
+  copy: src=files/authorized_keys dest=~/.ssh/authorized_keys mode=0600
+
+- name: Place fail2ban configuration
+  become: true
+  copy: src=files/fail2ban/custom.conf dest=/etc/fail2ban/jail.d/custom.conf
+
+- name: Restart fail2ban
+  become: true
+  service:
+    name: fail2ban
+    state: restarted
+
+- name: Enable fail2ban service
+  become: true
+  service:
+    name: fail2ban
+    enabled: true
+
+- name: Setup UFW
+  become: true
+  ufw:
+    state: enabled
+    policy: deny
+    direction: incoming
+
+- name: Allow known hosts
+  become: true
+  ufw: rule=allow direction=in src={{ item }}
+  with_items:
+    - 83.197.90.180 # personal
+    - 50.31.15.186 # status.wires.fr
+    - 51.159.159.142 # dev.wires.fr
+
+- name: Deny outgoing SMTP
+  become: true
+  ufw: rule=deny port=25 proto=tcp direction=out
+
+- name: Allow HTTP
+  become: true
+  ufw: rule=allow port=80 proto=tcp direction=in
+
+- name: Allow HTTPS
+  become: true
+  ufw: rule=allow port=443 proto=tcp direction=in
+
+- name: Allow MongoDB ports from specific hosts
+  become: true
+  ufw: rule=allow port={{ item }} proto=tcp direction=in
+  with_items:
+    - 27017
+    - 27018
+    - 27019
+
+- name: Allow SSH
+  become: true
+  ufw: rule=allow port=22 proto=tcp direction=in

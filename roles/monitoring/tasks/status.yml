@@ -1,0 +1,25 @@
+
+- name: Create monitoring directory
+  file:
+    path: ~/monitoring
+    state: directory
+
+- name: Stop Docker Compose
+  command: docker compose stop
+  args:
+    chdir: ~/monitoring
+  ignore_errors: yes
+
+- name: Create UptimeKuma directory
+  file:
+    path: ~/monitoring/uptime-kuma
+    state: directory
+
+- name: Place docker-compose.yml
+  copy: src=files/monitoring/docker-compose.yml dest=~/monitoring/docker-compose.yml
+
+- name: Restart Docker Compose
+  command: docker compose restart
+  args:
+    chdir: ~/monitoring
+  ignore_errors: yes

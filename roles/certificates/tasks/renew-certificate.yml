@@ -1,0 +1,38 @@
+- name: Check expiration
+  become: true
+  command: openssl x509 -enddate -noout -in /etc/letsencrypt/live/{{ wildcardDomain }}/cert.pem
+  register: expiration
+
+- name: Certificate expiration
+  debug:
+    var: expiration.stdout
+
+- name: Parse certificate expiration date
+  set_fact:
+    expiration_date: "{{ expiration.stdout.split('=')[1] | trim }}"
+
+- name: Calculate days until expiration
+  shell: |
+    date --date="{{ expiration_date }}" +%s
+  register: expiration_timestamp
+
+- name: Get current date timestamp
+  shell: date +%s
+  register: current_timestamp
+
+- name: Calculate days remaining
+  set_fact:
+    days_remaining: "{{ (expiration_timestamp.stdout | int - current_timestamp.stdout | int) // 86400 }}"
+
+- name: Debug remaining days
+  debug:
+    msg: "Days remaining until certificate expiry: {{ days_remaining }}"
+
+- name: Check if renewal is needed
+  debug:
+    msg: "Renewal is needed"
+  when: days_remaining is defined and (days_remaining | int) < (renewalThreshold | int)
+
+- name: Renew certificate
+  command: certbot renew --cert-name "{{ wildcardDomain }}" --server https://acme-v02.api.letsencrypt.org/directory
+  when: days_remaining is defined and (days_remaining | int) < (renewalThreshold | int)

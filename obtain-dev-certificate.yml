@@ -1,0 +1,10 @@
+- hosts: dev
+
+  vars:
+    wildcardDomain: dev.wires.fr
+    notificationEmail: antoine.gautrain@gmail.com
+
+    renewalThreshold: 30
+
+  roles:
+    - role: certificates

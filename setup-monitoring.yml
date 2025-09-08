@@ -1,0 +1,7 @@
+# Role to setup gateway + status page
+# Pre-requisites: dependencies, firewall, docker, certificates
+
+- hosts: vps_scaleway
+
+  roles:
+    - role: monitoring

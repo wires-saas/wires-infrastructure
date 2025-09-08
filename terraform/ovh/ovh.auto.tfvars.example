@@ -1,0 +1,5 @@
+# ovh.auto.tfvars
+# https://www.ovh.com/auth/api/createToken
+application_key = "<APPLICATION_KEY>"
+application_secret = "<APPLICATION_SECRET>"
+consumer_key = "<CONSUMER_KEY>"

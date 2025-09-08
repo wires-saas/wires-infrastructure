@@ -6,5 +6,6 @@ roles/.DS_Store
 
 .terraform
 scaleway.auto.tfvars
+ovh.auto.tfvars
 terraform.tfstate
 terraform.tfstate.backup

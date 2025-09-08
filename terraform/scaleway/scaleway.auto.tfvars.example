@@ -1,0 +1,6 @@
+# scaleway.auto.tfvars
+# https://console.scaleway.com/iam/api-keys
+access_key = "<ACCESS_KEY>"
+secret_key = "<SECRET_KEY>"
+organization_id = "<ORGANIZATION_ID>"
+project_id = "<PROJECT_ID>"

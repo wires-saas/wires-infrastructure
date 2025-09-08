@@ -2,10 +2,9 @@ terraform {
   required_providers {
     scaleway = {
       source = "scaleway/scaleway"
+      version = "2.59.0"
     }
   }
-  
-  required_version = ">= 1.0"
 }
 
 variable "access_key" {
@@ -133,4 +132,9 @@ resource "scaleway_instance_server" "wires-dev-0" {
   root_volume {
     size_in_gb = 10
   }
+}
+
+output "wires_dev_0_public_ip" {
+  description = "Public IP address of the wires-dev-0 server"
+  value       = data.scaleway_instance_ip.public_dev_ip.address
 }

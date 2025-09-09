@@ -32,3 +32,6 @@ Each directory contains :
 - `*.auto.tfvars` - Variable values (sensitive data, git ignored)
 - `*.auto.tfvars.example` - Example variable file
 - `terraform.tfstate*` - State files (git ignored)
+
+`terraform/scaleway` generates `inventory.yml` based on `inventory.tpl` when running `terraform apply`
+This file is referenced in ansible configuration.

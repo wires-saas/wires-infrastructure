@@ -4,6 +4,10 @@ terraform {
       source = "scaleway/scaleway"
       version = "2.59.0"
     }
+    local = {
+      source = "hashicorp/local"
+      version = "~> 2.0"
+    }
   }
 }
 
@@ -159,6 +163,22 @@ resource "scaleway_instance_server" "wires-dev-0" {
     size_in_gb = 10
   }
 }
+
+resource "local_file" "ansible_inventory" {
+ filename = "inventory.yml"
+ content = templatefile("${path.module}/inventory.tpl", {
+   prod_servers = [
+     scaleway_instance_server.wires-prod-0,
+     scaleway_instance_server.wires-prod-1
+   ]
+   dev_servers = [
+     scaleway_instance_server.wires-dev-0
+   ]
+   bastion_ip = scaleway_instance_ip.public_ip.address
+ })
+}
+
+### OUTPUTS ###
 
 output "wires_dev_0_public_ip" {
   description = "Public IP address of the wires-dev-0 server"

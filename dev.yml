@@ -2,7 +2,7 @@
 
   vars:
     installDependencies: false
-    createNetworks: true
+    createNetworks: false
 
     renewCertificates: false
 

@@ -50,6 +50,32 @@ provider "scaleway" {
 resource "scaleway_vpc_private_network" "wires_private_network" {
   name = "wires-prod-private-network"
   tags = ["terraform", "prod"]
+  
+  # dhcp
+  ipv4_subnet {
+    subnet = "172.16.12.0/22"
+  }
+}
+
+# Gateway for Internet access from instances inside private network
+
+resource "scaleway_vpc_public_gateway_ip" "main" {}
+
+resource "scaleway_vpc_public_gateway" "main" {
+  name = "wires-prod-gateway"
+  type = "VPC-GW-S"
+  ip_id = scaleway_vpc_public_gateway_ip.main.id
+  
+  tags = ["terraform", "prod", "gateway"]
+}
+
+resource "scaleway_vpc_gateway_network" "main" {
+  gateway_id         = scaleway_vpc_public_gateway.main.id
+  private_network_id = scaleway_vpc_private_network.wires_private_network.id
+  enable_masquerade = true
+  ipam_config {
+    push_default_route = true
+  }
 }
 
 resource "scaleway_instance_security_group" "web-security-group" {
@@ -137,4 +163,9 @@ resource "scaleway_instance_server" "wires-dev-0" {
 output "wires_dev_0_public_ip" {
   description = "Public IP address of the wires-dev-0 server"
   value       = data.scaleway_instance_ip.public_dev_ip.address
+}
+
+output "wires_prod_gateway_ip" {
+  description = "Public IP address of the prod gateway"
+  value       = scaleway_vpc_public_gateway_ip.main.address
 }

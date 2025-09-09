@@ -35,6 +35,7 @@
     - 83.197.90.180 # personal
     - 50.31.15.186 # status.wires.fr
     - 51.159.159.142 # dev.wires.fr
+    - 172.16.12.0/22 # private subnet
 
 - name: Deny outgoing SMTP
   become: true

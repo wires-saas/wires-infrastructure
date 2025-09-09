@@ -2,15 +2,9 @@ prod:
   hosts:
     wires-prod-0:
       ansible_user: root
-      ansible_host: 51.159.136.188
-      server_role: frontend
+      ansible_host: 172.16.12.2
       environment: prod
-    wires-prod-1:
-      ansible_user: root
-      ansible_host: 172.16.12.3
-      server_role: backend
-      environment: prod
-      ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p root@51.159.136.188"'
+      ansible_ssh_common_args: '-J bastion@51.159.171.171:61000'
 
 dev:
   hosts:

@@ -32,14 +32,20 @@
   become: true
   ufw: rule=allow direction=in src={{ item }}
   with_items:
-    - 83.197.90.180 # personal
     - 50.31.15.186 # status.wires.fr
     - 51.159.159.142 # dev.wires.fr
+    - 51.159.171.171 # wires.fr
     - 172.16.12.0/22 # private subnet
+    - 83.197.90.180 # personal
 
-- name: Deny outgoing SMTP
+- name: Deny outgoing SMTP for avoiding spam
   become: true
-  ufw: rule=deny port=25 proto=tcp direction=out
+  ufw: rule=deny port={{ item }} proto=tcp direction=out
+  with_items:
+    - 25
+    - 465
+    - 587
+    - 2525
 
 - name: Allow HTTP
   become: true

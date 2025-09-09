@@ -3,10 +3,10 @@
 - hosts: prod
 
   vars:
-    installDependencies: false
+    installDependencies: true
     createNetworks: true
 
-    renewCertificates: false
+    renewCertificates: true
 
     # # certificate details
     wildcardDomain: wires.fr

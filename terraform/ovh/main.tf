@@ -67,7 +67,7 @@ resource "ovh_domain_zone_record" "prod_root_a" {
   zone      = ovh_domain_zone.wires_fr.name
   subdomain = ""
   fieldtype = "A"
-  target    = data.terraform_remote_state.scaleway.outputs.wires_prod_0_public_ip
+  target    = data.terraform_remote_state.scaleway.outputs.wires_prod_gateway_ip
   ttl       = "300"
 }
 
@@ -81,7 +81,7 @@ resource "ovh_domain_zone_record" "prod_subdomain_a" {
   zone      = ovh_domain_zone.wires_fr.name
   subdomain = each.value
   fieldtype = "A"
-  target    = data.terraform_remote_state.scaleway.outputs.wires_prod_0_public_ip
+  target    = data.terraform_remote_state.scaleway.outputs.wires_prod_gateway_ip
   ttl       = "300"
 }
 

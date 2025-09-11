@@ -11,46 +11,6 @@ terraform {
   }
 }
 
-variable "access_key" {
-  type = string
-  sensitive = true
-}
-
-variable "secret_key" {
-  type = string
-  sensitive = true
-}
-
-variable "organization_id" {
-  type = string
-  sensitive = true
-}
-
-variable "project_id" {
-  type = string
-  sensitive = true
-}
-
-variable "region" {
-  type = string
-  default = "fr-par"
-}
-
-variable "zone" {
-  type = string
-  default = "fr-par-2"
-}
-
-provider "scaleway" {
-  access_key      = var.access_key
-  secret_key      = var.secret_key
-  organization_id = var.organization_id
-  project_id      = var.project_id
-
-  region          = var.region
-  zone            = var.zone
-}
-
 resource "scaleway_vpc_private_network" "wires_private_network" {
   name = "wires-prod-private-network"
   tags = ["terraform", "prod"]
@@ -145,9 +105,7 @@ resource "scaleway_instance_server" "wires-prod-0" {
   }
 }
 
-data "scaleway_instance_ip" "public_dev_ip" {
-  address = "51.159.159.142"
-}
+resource "scaleway_instance_ip" "public_dev_ip" {}
 
 resource "scaleway_instance_server" "wires-dev-0" {
   name  = "wires-dev-0"
@@ -156,7 +114,7 @@ resource "scaleway_instance_server" "wires-dev-0" {
 
   tags = ["terraform", "dev"]
 
-  ip_id = data.scaleway_instance_ip.public_dev_ip.id
+  ip_id = scaleway_instance_ip.public_dev_ip.id
 
   root_volume {
     size_in_gb = 10
@@ -181,10 +139,15 @@ resource "local_file" "ansible_inventory" {
 
 output "wires_dev_0_public_ip" {
   description = "Public IP address of the wires-dev-0 server"
-  value       = data.scaleway_instance_ip.public_dev_ip.address
+  value       = scaleway_instance_ip.public_dev_ip.address
 }
 
 output "wires_prod_gateway_ip" {
   description = "Public IP address of the prod gateway"
   value       = scaleway_vpc_public_gateway_ip.main.address
+}
+
+output "wires_prod_private_network" {
+  description = "IP range of the prod private network"
+  value       = scaleway_vpc_private_network.wires_private_network.ipv4_subnet[0].subnet
 }

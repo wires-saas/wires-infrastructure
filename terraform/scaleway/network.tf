@@ -24,6 +24,7 @@ resource "scaleway_vpc_public_gateway" "main" {
 
 locals {
   prod_server_private_ip = [for ip in scaleway_instance_server.wires-prod-0.private_ips : ip.address if can(regex("^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$", ip.address))][0]
+  prod_lb_private_ip =  [for ip in scaleway_lb.main.private_ips : ip.address if can(regex("^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$", ip.address))][0]
 }
 
 resource "scaleway_vpc_public_gateway_pat_rule" "http" {

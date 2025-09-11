@@ -18,6 +18,7 @@ This directory contains Terraform configurations for managing infrastructure acr
 ### `scaleway/` - for infrastructure Management
 
 - **Purpose**: manages cloud infrastructure including servers, networking, and security
+- **Side-effects**: on `terraform apply`, populates ssh_config and inventory.yml
 
 ## Usage
 
@@ -26,12 +27,15 @@ This directory contains Terraform configurations for managing infrastructure acr
 
 ## Configuration
 
-Each directory contains :
+- For Scaleway use `scw config` CLI tool
+- For OVH duplicate and modify `ovh.auto.tfvars.example` (removing .example suffix)
 
-- `main.tf` - Main terraform configuration
-- `*.auto.tfvars` - Variable values (sensitive data, git ignored)
-- `*.auto.tfvars.example` - Example variable file
-- `terraform.tfstate*` - State files (git ignored)
+## Infra
 
-`terraform/scaleway` generates `inventory.yml` based on `inventory.tpl` when running `terraform apply`
-This file is referenced in ansible configuration.
+Internet -> Gateway -> Load balancer -> Instance
+
+Public ------- Private -----------------------------
+
+## Next steps
+
+Add multiple instances, and design an alternative infra based on Kubernetes

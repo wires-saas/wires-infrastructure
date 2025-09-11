@@ -1,7 +1,6 @@
-# Load Balancer - Smallest possible configuration
 resource "scaleway_lb" "main" {
   name            = "wires-lb"
-  type            = "LB-S"  # Smallest load balancer type
+  type            = "LB-S"
   zone            = "fr-par-2"
   assign_flexible_ip = false
 
@@ -16,7 +15,9 @@ resource "scaleway_lb" "main" {
 resource "scaleway_lb_backend" "main" {
   lb_id            = scaleway_lb.main.id
   name             = "wires-api-backend"
-  forward_protocol = "http"
+
+  # tcp mode passes through the encrypted SSL traffic without trying to decrypt/re-encrypt
+  forward_protocol = "tcp"
   forward_port     = 443
   forward_port_algorithm = "roundrobin"
   server_ips = [local.prod_server_private_ip]
@@ -34,7 +35,6 @@ resource "scaleway_lb_backend" "main" {
   health_check_port = 443
 }
 
-# Frontend - HTTP
 resource "scaleway_lb_frontend" "http" {
   lb_id        = scaleway_lb.main.id
   backend_id   = scaleway_lb_backend.main.id
@@ -42,7 +42,6 @@ resource "scaleway_lb_frontend" "http" {
   inbound_port = 80
 }
 
-# Frontend - HTTPS
 resource "scaleway_lb_frontend" "https" {
   lb_id        = scaleway_lb.main.id
   backend_id   = scaleway_lb_backend.main.id

@@ -29,7 +29,7 @@ locals {
 
 resource "scaleway_vpc_public_gateway_pat_rule" "http" {
   gateway_id   = scaleway_vpc_public_gateway.main.id
-  private_ip   = local.prod_server_private_ip
+  private_ip   = local.prod_lb_private_ip
   private_port = 80
   public_port  = 80
   protocol     = "tcp"
@@ -37,7 +37,7 @@ resource "scaleway_vpc_public_gateway_pat_rule" "http" {
 
 resource "scaleway_vpc_public_gateway_pat_rule" "https" {
   gateway_id   = scaleway_vpc_public_gateway.main.id
-  private_ip   = local.prod_server_private_ip
+  private_ip   = local.prod_lb_private_ip
   private_port = 443
   public_port  = 443
   protocol     = "tcp"

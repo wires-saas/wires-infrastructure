@@ -28,14 +28,25 @@
     policy: deny
     direction: incoming
 
+- name: Fetch Terraform outputs
+  command: terraform output -json
+  args:
+    chdir: "{{ terraform_project_path | default('../../terraform/scaleway') }}"
+  register: terraform_output_raw
+  changed_when: false
+
+- name: Parse Terraform outputs
+  set_fact:
+    terraform_outputs: "{{ terraform_output_raw.stdout | from_json }}"
+
 - name: Allow known hosts
   become: true
   ufw: rule=allow direction=in src={{ item }}
   with_items:
+    - "{{ terraform_outputs.wires_dev_0_public_ip.value }}" # dev.wires.fr
+    - "{{ terraform_outputs.wires_prod_gateway_ip.value }}" # wires.fr (prod gateway)
+    - "{{ terraform_outputs.wires_prod_private_network.value }}" # private subnet
     - 50.31.15.186 # status.wires.fr
-    - 51.159.159.142 # dev.wires.fr
-    - 51.159.171.171 # wires.fr
-    - 172.16.12.0/22 # private subnet
     - 83.197.90.180 # personal
 
 - name: Deny outgoing SMTP for avoiding spam

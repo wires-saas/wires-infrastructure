@@ -135,6 +135,20 @@ resource "local_file" "ansible_inventory" {
  })
 }
 
+resource "local_file" "ssh_config" {
+ filename = "ssh_config"
+ content = templatefile("${path.module}/ssh_config.tpl", {
+   prod_servers = [
+     scaleway_instance_server.wires-prod-0
+   ]
+   dev_servers = [
+     scaleway_instance_server.wires-dev-0
+   ]
+   bastion_ip = scaleway_vpc_public_gateway_ip.main.address
+   bastion_port = scaleway_vpc_public_gateway.main.bastion_port
+ })
+}
+
 ### OUTPUTS ###
 
 output "wires_dev_0_public_ip" {

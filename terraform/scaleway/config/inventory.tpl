@@ -14,7 +14,7 @@ dev:
   hosts:
 %{ for instance in dev_servers ~}
     ${instance.name}:
-      ansible_host: ${instance.public_ip != null ? instance.public_ip : instance.private_ip}
       ansible_user: root
+      ansible_host: ${instance.public_ip != null ? instance.public_ip : instance.private_ip}
       environment: dev
 %{ endfor ~}

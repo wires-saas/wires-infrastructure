@@ -4,11 +4,11 @@ prod:
       ansible_user: root
       ansible_host: 172.16.12.2
       environment: prod
-      ansible_ssh_common_args: "-J bastion@51.159.171.171:61000"
+      ansible_ssh_common_args: '-J bastion@51.159.171.171:61000'
 
 dev:
   hosts:
     wires-dev-0:
-      ansible_host: 51.159.159.142
       ansible_user: root
+      ansible_host: 51.159.159.142
       environment: dev

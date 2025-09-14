@@ -1,0 +1,25 @@
+- name: Check if ~/.kube/config file exists
+  stat:
+    path: "~/.kube/config"
+  register: kube_config_file
+
+- name: Fail if ~/.kube/config file does not exist
+  fail:
+    msg: "Kubernetes config file not found at ~/.kube/config. Please ensure kubectl is configured."
+  when: not kube_config_file.stat.exists
+
+- name: Check if kubectl cluster-info is working
+  command: kubectl cluster-info
+  register: kubectl_cluster_info
+  failed_when: kubectl_cluster_info.rc != 0
+  changed_when: false
+
+- name: Display cluster information
+  debug:
+    msg: "{{ kubectl_cluster_info.stdout_lines }}"
+
+- name: Include dashboard task
+  include_tasks: dashboard.yml
+
+- name: Include hello-world task
+  include_tasks: hello-world.yml

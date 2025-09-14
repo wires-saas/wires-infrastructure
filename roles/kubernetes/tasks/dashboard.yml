@@ -1,0 +1,50 @@
+# helm repo add kubernetes-dashboard https://kubernetes.github.io/dashboard/
+- name: Add Kubernetes Dashboard Helm repository
+  kubernetes.core.helm_repository:
+    name: kubernetes-dashboard
+    repo_url: https://kubernetes.github.io/dashboard/
+
+# helm upgrade --install kubernetes-dashboard kubernetes-dashboard/kubernetes-dashboard --create-namespace --namespace kubernetes-dashboard
+- name: Install/Upgrade Kubernetes Dashboard using Helm
+  kubernetes.core.helm:
+    name: kubernetes-dashboard
+    chart_ref: kubernetes-dashboard/kubernetes-dashboard
+    release_namespace: kubernetes-dashboard
+    create_namespace: true
+    state: present
+
+# kubectl apply -f ../files/dashboard-admin-user.yml
+- name: Apply dashboard admin user configuration
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/dashboard-admin-user.yml"
+
+# kubectl apply -f ../files/dashboard-rbac.yml
+- name: Apply dashboard RBAC configuration
+  kubernetes.core.k8s:
+    state: present
+    src: "{{ role_path }}/files/dashboard-rbac.yml"
+
+# kubectl -n kubernetes-dashboard create token admin-user
+- name: Create admin user token for dashboard access
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: admin-user-token
+        namespace: kubernetes-dashboard
+        annotations:
+          kubernetes.io/service-account.name: admin-user
+      type: kubernetes.io/service-account-token
+  register: admin_token
+
+- name: Display admin user token
+  debug:
+    msg: "Admin token created. Use 'kubectl -n kubernetes-dashboard get secret admin-user-token -o jsonpath={.data.token} | base64 -d' to retrieve it."
+
+# kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443
+- name: Display port-forward command for dashboard access
+  debug:
+    msg: "To access the dashboard, run: kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443"

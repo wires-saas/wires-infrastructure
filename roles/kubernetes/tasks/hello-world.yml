@@ -1,0 +1,8 @@
+---
+- name: Install nginx-hello-world using Helm
+  shell: helm install nginx-hello-world {{ role_path }}/files/nginx-hello-world --namespace dev
+  register: helm_install_result
+
+- name: Display installation result
+  debug:
+    msg: "{{ helm_install_result.stdout }}"
